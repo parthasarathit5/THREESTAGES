@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Order Successful</title>
+
+<style>
+body{
+font-family:Arial;
+background:#f5f5f5;
+text-align:center;
+}
+
+.box{
+background:white;
+width:500px;
+margin:auto;
+margin-top:80px;
+padding:40px;
+border-radius:10px;
+box-shadow:0 4px 10px rgba(0,0,0,0.1);
+}
+
+h2{
+color:green;
+}
+
+</style>
+</head>
+
+<body>
+
+<div class="box">
+
+<h2>✅ Order Placed Successfully</h2>
+
+<p><b>Customer:</b> {{ name }}</p>
+
+<p><b>Phone:</b> {{ phone }}</p>
+
+<p><b>Address:</b> {{ address }}</p>
+
+<p><b>Total Amount:</b> ₹ {{ total }}</p>
+
+<p><b>Payment Method:</b> {{ payment }}</p>
+
+<p>⏰ Your order will be delivered before <b>11:00 PM</b></p>
+
+<br>
+
+<a href="/">Back to Home</a>
+
+</div>
+
+</body>
+</html>

@@ -1,0 +1,215 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Talapala Fruits</title>
+
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
+
+<style>
+
+body{
+    font-family:'Poppins',sans-serif;
+    background:#f4f6f9;
+    margin:0;
+}
+
+.header{
+    background:#1f7a45;
+    color:white;
+    padding:20px;
+    text-align:center;
+    font-size:28px;
+}
+
+.grid{
+    display:grid;
+    grid-template-columns:repeat(auto-fit,minmax(220px,1fr));
+    gap:25px;
+    padding:40px;
+}
+
+.card{
+    background:white;
+    border-radius:12px;
+    box-shadow:0 4px 12px rgba(0,0,0,0.08);
+    padding:18px;
+    text-align:center;
+}
+
+.price{
+    background:#27ae60;
+    color:white;
+    display:inline-block;
+    padding:4px 10px;
+    border-radius:6px;
+    margin-top:6px;
+}
+
+.stock{
+    font-size:13px;
+    color:#666;
+}
+
+.qty-box{
+    display:flex;
+    justify-content:center;
+    align-items:center;
+    margin-top:10px;
+}
+
+.btn{
+    background:#27ae60;
+    border:none;
+    color:white;
+    padding:6px 10px;
+    font-size:16px;
+    cursor:pointer;
+    border-radius:4px;
+}
+
+.qty{
+    margin:0 10px;
+    font-size:16px;
+    font-weight:600;
+}
+
+.checkout{
+    display:block;
+    margin:20px auto;
+    background:#ff6b00;
+    color:white;
+    padding:15px 30px;
+    font-size:18px;
+    border:none;
+    border-radius:8px;
+    cursor:pointer;
+}
+
+.total-box{
+    text-align:center;
+    font-size:24px;
+    font-weight:600;
+}
+
+</style>
+</head>
+
+<body>
+
+<div class="header">
+🍎 Talapala Fruits Store
+</div>
+
+<div class="grid">
+
+{% for fruit in fruits %}
+
+<div class="card">
+
+<div style="font-size:70px">
+
+{% if fruit.name == "Apple" %}
+🍎
+{% elif fruit.name == "Banana" or fruit.name == "Bannab" %}
+🍌
+{% elif fruit.name == "Grapes" %}
+🍇
+{% elif fruit.name == "Orange" %}
+🍊
+{% elif fruit.name == "Pineapple" or fruit.name == "Pineppale" %}
+🍍
+{% elif fruit.name == "Watermelon" %}
+🍉
+{% elif fruit.name == "Muskmelon" %}
+🍈
+{% elif fruit.name == "Custard Apple" or fruit.name == "Custardapple" %}
+🍏
+{% else %}
+🥝
+{% endif %}
+
+</div>
+
+<h3>{{ fruit.name }}</h3>
+
+<div class="price">{{ fruit.price }}</div>
+
+<div class="stock">Stock: {{ fruit.stock }}</div>
+
+<div class="qty-box">
+<button class="btn" onclick="minus(this)">−</button>
+<span class="qty">0</span>
+<button class="btn" onclick="plus(this)">+</button>
+</div>
+
+</div>
+
+{% endfor %}
+
+</div>
+
+<!-- TOTAL DISPLAY -->
+<div class="total-box">
+Total: ₹ <span id="total">0</span>
+</div>
+
+<!-- CHECKOUT -->
+<button class="checkout" onclick="goCheckout()">
+Proceed to Checkout
+</button>
+
+<script>
+
+let total = 0;
+
+function plus(btn){
+
+    let card = btn.closest(".card");
+
+    let qty = card.querySelector(".qty");
+
+    let price = parseInt(card.querySelector(".price").innerText);
+
+    qty.innerText = parseInt(qty.innerText) + 1;
+
+    total += price;
+
+    document.getElementById("total").innerText = total;
+}
+
+function minus(btn){
+
+    let card = btn.closest(".card");
+
+    let qty = card.querySelector(".qty");
+
+    let price = parseInt(card.querySelector(".price").innerText);
+
+    let value = parseInt(qty.innerText);
+
+    if(value > 0){
+
+        qty.innerText = value - 1;
+
+        total -= price;
+
+        document.getElementById("total").innerText = total;
+
+    }
+
+}
+function goCheckout(){
+
+    if(total == 0){
+        alert("Please add items first")
+        return
+    }
+
+    window.location.href="/checkout/?total=" + total
+
+}
+
+</script>
+
+</body>
+</html>
