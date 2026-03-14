@@ -9,8 +9,9 @@ https://docs.djangoproject.com/en/6.0/topics/settings/
 For the full list of settings and their values, see
 https://docs.djangoproject.com/en/6.0/ref/settings/
 """
-
+import os
 from pathlib import Path
+import dj_database_url
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -19,13 +20,11 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/6.0/howto/deployment/checklist/
 
-# SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = 'django-insecure-2em6i*%9v=2qfku_zyw=gmdkr*xqb(9)f3x2rpeaj4#0u&a&b#'
+# SECURITY WARNING: keep the secret key used in production secret
+SECRET_KEY = os.environ.get("SECRET_KEY", "django-insecure-local-key")
 
-# SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
-
-ALLOWED_HOSTS = []
+DEBUG = os.environ.get("DEBUG", "True") == "True"
+ALLOWED_HOSTS = ["*"]
 
 
 # Application definition
@@ -74,16 +73,25 @@ WSGI_APPLICATION = 'talapala.wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/6.0/ref/settings/#databases
 
-DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.postgresql',
-        'NAME': 'talapala_fruits_db',
-        'USER': 'postgres',
-        'PASSWORD': 'postgresql@123',
-        'HOST': 'localhost',
-        'PORT': '5432',
+
+
+DATABASE_URL = os.environ.get("DATABASE_URL")
+
+if DATABASE_URL:
+    DATABASES = {
+        'default': dj_database_url.parse(DATABASE_URL)
     }
-}
+else:
+    DATABASES = {
+        'default': {
+            'ENGINE': 'django.db.backends.postgresql',
+            'NAME': 'talapala_fruits_db',
+            'USER': 'postgres',
+            'PASSWORD': 'postgresql@123',
+            'HOST': 'localhost',
+            'PORT': '5432',
+        }
+    }
 
 # Password validation
 # https://docs.djangoproject.com/en/6.0/ref/settings/#auth-password-validators
@@ -120,8 +128,384 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/6.0/howto/static-files/
 
 STATIC_URL = 'static/'
+STATIC_ROOT = BASE_DIR / "staticfiles"
 MEDIA_URL = '/media/'
 MEDIA_ROOT = BASE_DIR / 'media'
 
-RAZORPAY_KEY_ID = "rzp_live_SR1LMFIuK4WHKT"
-RAZORPAY_KEY_SECRET = "KsPhK9XTw1SczqlMUTt3vJdJ"
+RAZORPAY_KEY_ID = os.environ.get("RAZORPAY_KEY_ID", "rzp_live_SR1LMFIuK4WHKT")
+RAZORPAY_KEY_SECRET = os.environ.get("RAZORPAY_KEY_SECRET", "KsPhK9XTw1SczqlMUTt3vJdJ")
+
+
+
+
+
+
+
+
+
+
+# Good question, Buddie — this part confuses a lot of people. Let’s break it down simply.
+
+# Right now your **database settings** are like this:
+
+# ```python
+# DATABASES = {
+#     'default': {
+#         'ENGINE': 'django.db.backends.postgresql',
+#         'NAME': 'talapala_fruits_db',
+#         'USER': 'postgres',
+#         'PASSWORD': 'postgresql@123',
+#         'HOST': 'localhost',
+#         'PORT': '5432',
+#     }
+# }
+# ```
+
+# This works **only on your local computer** because:
+
+# * `HOST = localhost` means **your own laptop database**.
+
+# But when you deploy to **Render**, your laptop database **does not exist there**.
+
+# So Render gives you **one single connection string** that already contains:
+
+# * database name
+# * username
+# * password
+# * host
+# * port
+
+# Example Render database URL:
+
+# ```
+# postgres://talapala_user:Abc123@dpg-cabcd123.render.com:5432/talapala_db
+# ```
+
+# Inside that **one line**, all these values are already included.
+
+# | Part          | Meaning       |
+# | ------------- | ------------- |
+# | talapala_user | database user |
+# | Abc123        | password      |
+# | render.com    | host          |
+# | 5432          | port          |
+# | talapala_db   | database name |
+
+# That is why we write:
+
+# ```python
+# import dj_database_url
+
+# DATABASES = {
+#     'default': dj_database_url.parse(os.environ.get("DATABASE_URL"))
+# }
+# ```
+
+# Django will automatically read everything from the **DATABASE_URL**.
+
+# ---
+
+# # Where You Put That DATABASE_URL
+
+# Go to **Render Dashboard → Your Web Service → Environment**
+
+# Add:
+
+# | Key          | Value                                     |
+# | ------------ | ----------------------------------------- |
+# | DATABASE_URL | postgres://user:password@host:5432/dbname |
+
+# Render gives this automatically when you create a **PostgreSQL database**.
+
+# ---
+
+# # Your Local Database Will Still Work
+
+# For development you can keep a fallback like this:
+
+# ```python
+# import dj_database_url
+
+# DATABASES = {
+#     'default': dj_database_url.config(
+#         default='postgres://postgres:postgresql@123@localhost:5432/talapala_fruits_db'
+#     )
+# }
+# ```
+
+# So:
+
+# # | Location      | Database          |
+# # | ------------- | ----------------- |
+# # | Your laptop   | local PostgreSQL  |
+# # | Render server | Render PostgreSQL |
+
+# # ---
+
+# # ✅ Buddie, if you want, show me:
+
+# # * your **Render database URL**
+# # * your **project structure**
+
+# # and I’ll help you finish the deployment so your **Talapala Fruits site goes live**. 🍎🚀
+# Good question, Buddie 👍 — let’s break both things **very simply**.
+
+# You asked two things:
+
+# 1. **Why we use `os.environ.get()`**
+# 2. **Why we run `migrate`**
+
+# ---
+
+# # 1️⃣ Why we use `os.environ.get()`
+
+# When you write this in `settings.py`:
+
+# ```python
+# SECRET_KEY = os.environ.get("SECRET_KEY")
+# ```
+
+# Django is saying:
+
+# 👉 “Go to the **system environment variables** and get the value called `SECRET_KEY`.”
+
+# Those variables are stored in **Render**.
+
+# So instead of putting the secret key inside the code, we store it **securely on the server**.
+
+# ### Without environment variable
+
+# ```python
+# SECRET_KEY = "abc123"
+# ```
+
+# Problem ❌
+# If you push code to GitHub, **anyone can see your secret key**.
+
+# ---
+
+# ### With environment variable
+
+# ```python
+# SECRET_KEY = os.environ.get("SECRET_KEY")
+# ```
+
+# Now the key is stored in Render like this:
+
+# | Key        | Value             |
+# | ---------- | ----------------- |
+# | SECRET_KEY | random-secret-key |
+
+# Your code **reads it from the server**.
+
+# That’s why we use `os`.
+
+# `os` = Python module that talks to the **operating system**.
+
+# ---
+
+# # 2️⃣ Why We Run `python manage.py migrate`
+
+# Django apps use **database tables**.
+
+# Example tables:
+
+# * users
+# * products
+# * orders
+# * sessions
+# * admin
+
+# But when a new server starts (like Render), **the database is empty**.
+
+# So we run:
+
+# ```
+# python manage.py migrate
+# ```
+
+# What it does:
+
+# ```
+# Django models
+#         ↓
+# Creates tables
+#         ↓
+# inside PostgreSQL database
+# ```
+
+# Example:
+
+# If you have a model:
+
+# ```python
+# class Product(models.Model):
+#     name = models.CharField(max_length=100)
+# ```
+
+# Migration creates a table:
+
+# ```
+# product
+# ------
+# id
+# name
+# ```
+
+# Without migration ❌
+
+# Your app will crash with:
+
+# ```
+# relation does not exist
+# ```
+
+# ---
+
+# # 3️⃣ Simple Flow of Deployment
+
+# ```
+# Code → GitHub → Render
+#             ↓
+# Database created
+#             ↓
+# python manage.py migrate
+#             ↓
+# Tables created
+#             ↓
+# Website works
+# ```
+
+# ---
+
+# # 4️⃣ Very Simple Example
+
+# # Think of database like an **empty house**.
+
+# # Migration = **building the rooms**.
+
+# # Without migration:
+
+# # ```
+# # House exists
+# # But no rooms
+# # ```
+
+# # With migration:
+
+# # ```
+# # House
+# #  ├── users table
+# #  ├── products table
+# #  ├── orders table
+# # ```
+
+# # ---
+
+# # ✅ Buddie, you’re **very close to deployment now**.
+
+# # Next step after this is usually:
+
+# # 1️⃣ **requirements.txt**
+# # 2️⃣ **Render build command**
+# # 3️⃣ **Render start command**
+
+# # If you want, I can show you the **exact Render settings for your Talapala project** so it runs without errors. 🚀
+
+# Good question, Buddie 👍. Since you moved the keys to **environment variables**, you **won’t see them directly in `settings.py` anymore**. Instead, they live in **Render**.
+
+# Let me show you where and how you can see them.
+
+# ---
+
+# # 1️⃣ Where to See the Keys in Render
+
+# 1. Open **Render Dashboard**
+# 2. Click your **Web Service (talapala project)**
+# 3. Go to **Environment**
+
+# You will see something like this:
+
+# | Key                 | Value    |
+# | ------------------- | -------- |
+# | SECRET_KEY          | ******** |
+# | DEBUG               | False    |
+# | DATABASE_URL        | ******** |
+# | RAZORPAY_KEY_ID     | ******** |
+# | RAZORPAY_KEY_SECRET | ******** |
+
+# Render hides them with `****` for security.
+
+# You can click **Reveal Value** to see them.
+
+# ---
+
+# # 2️⃣ How Django Reads Them
+
+# In your `settings.py` you wrote:
+
+# ```python
+# SECRET_KEY = os.environ.get("SECRET_KEY")
+
+# RAZORPAY_KEY_ID = os.environ.get("RAZORPAY_KEY_ID")
+# RAZORPAY_KEY_SECRET = os.environ.get("RAZORPAY_KEY_SECRET")
+# ```
+
+# So when the server runs:
+
+# ```
+# Render Environment
+#         ↓
+# Django reads value
+#         ↓
+# Your app uses it
+# ```
+
+# ---
+
+# # 3️⃣ If You Want to Print It (for Testing)
+
+# You can temporarily test in **views.py** or **shell**:
+
+# ```python
+# import os
+# print(os.environ.get("SECRET_KEY"))
+# ```
+
+# or
+
+# ```bash
+# python manage.py shell
+# ```
+
+# then:
+
+# ```python
+# import os
+# os.environ.get("SECRET_KEY")
+# ```
+
+# It will show the value.
+
+# ⚠️ But **don’t print secrets in production logs**.
+
+# ---
+
+# # 4️⃣ Why This Method Is Safer
+
+# If someone opens your GitHub repository, they will only see:
+
+# ```python
+# SECRET_KEY = os.environ.get("SECRET_KEY")
+# ```
+
+# They **cannot see the actual key**.
+
+# Only the server (Render) knows the real value.
+
+# ---
+
+# ✅ Buddie, one more thing I noticed:
+# You earlier pasted your **Razorpay live secret** publicly. It’s safer to **regenerate a new secret in Razorpay dashboard** and update it in Render.
+
+# If you want, I can also show you **the final Render deployment settings for Django (build command + start command)** so your **Talapala Fruits website goes live properly**. 🚀

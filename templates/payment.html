@@ -113,19 +113,23 @@ var options = {
 
 "name": "Talapala Fruits",
 
-"description": "Fruit Order Payment",
+"description": "Fruit Order",
 
 "order_id": "{{ payment.id }}",
+"prefill": {
+    "name": "{{ name }}",
+    "contact": "{{ phone }}"
+},
 
 handler: function (response) {
 
-alert("Payment Successful");
-
-window.location.href="/order-success/?name={{name}}&phone={{phone}}&address={{address}}&total={{total}}"
+window.location.href="/order-success/?name={{name}}&phone={{phone}}&address={{address}}&total={{total}}";
 
 }
 
 };
+
+
 
 var rzp = new Razorpay(options);
 
@@ -141,3 +145,17 @@ e.preventDefault();
 
 </body>
 </html>
+
+{% comment %} 
+
+User adds fruits
+        ↓
+JavaScript calculates total
+        ↓
+Checkout button sends total to Django
+        ↓
+Checkout page receives total
+        ↓
+Form submits with same total
+        ↓
+Razorpay order created using that total {% endcomment %}
