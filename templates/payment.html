@@ -104,42 +104,47 @@ Pay Now
 <script>
 
 var options = {
+    "key": "{{ razorpay_key }}",
+    "amount": "{{ payment.amount }}",
+    "currency": "INR",
+    "name": "Talapala Fruits",
+    "description": "Fruit Order",
+    "order_id": "{{ payment.id }}",
 
-"key": "{{ razorpay_key }}",
+    "prefill": {
+        "name": "{{ name }}",
+        "contact": "{{ phone }}"
+    },
 
-"amount": "{{ payment.amount }}",
+    handler: function (response) {
 
-"currency": "INR",
+        fetch("/payment-success/", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/x-www-form-urlencoded"
+            },
+            body:
+            "razorpay_payment_id=" + response.razorpay_payment_id +
+            "&razorpay_order_id=" + response.razorpay_order_id +
+            "&razorpay_signature=" + response.razorpay_signature +
+            "&name={{ name }}" +
+            "&phone={{ phone }}" +
+            "&address={{ address }}" +
+            "&total={{ total }}"
+        })
+        .then(() => {
+            window.location.href="/order-success/?name={{name}}&phone={{phone}}&address={{address}}&total={{total}}";
+        });
 
-"name": "Talapala Fruits",
-
-"description": "Fruit Order",
-
-"order_id": "{{ payment.id }}",
-"prefill": {
-    "name": "{{ name }}",
-    "contact": "{{ phone }}"
-},
-
-handler: function (response) {
-
-window.location.href="/order-success/?name={{name}}&phone={{phone}}&address={{address}}&total={{total}}";
-
-}
-
+    }
 };
-
-
 
 var rzp = new Razorpay(options);
 
-document.getElementById("pay-btn").onclick=function(e){
-
-rzp.open();
-
-e.preventDefault();
-
-}
+document.getElementById("pay-btn").addEventListener("click", function(e) {
+    rzp.open();
+    e.preventDefault();
+});
 
 </script>
 
